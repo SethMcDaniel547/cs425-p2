@@ -94,7 +94,15 @@ static Packet packet_make(uint8_t type, uint32_t seq)
 Packet packet_make_data(uint32_t seq, const uint8_t *data, size_t length)
 {
     Packet packet = packet_make(0, seq);
-    if (length > PACKET_PAYLOAD_MAX) length = PACKET_PAYLOAD_MAX;
+    if (length > PACKET_PAYLOAD_MAX) {
+        /*
+         * The API does not receive the source buffer's capacity, so an
+         * oversized request cannot be safely truncated with memcpy.
+         * Preserve the packet-size contract and leave the payload zeroed.
+         */
+        packet.length = PACKET_PAYLOAD_MAX;
+        return packet;
+    }
     packet.length = (uint16_t)length;
     if (length != 0U && data != NULL) memcpy(packet.payload, data, length);
     return packet;
