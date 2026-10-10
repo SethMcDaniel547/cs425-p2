@@ -211,7 +211,7 @@ static int run_sender(int fd, const struct sockaddr *relay, socklen_t relay_leng
                     packet.length == 0U) {
                     action = sender_acknowledged(&state, packet.seq, monotonic_ms(),
                                                  timeout_ms);
-                    if (action.failed) {
+                    if (action.failed || send_action(fd, relay, relay_length, &action) != 0) {
                         sender_destroy(&state);
                         return 2;
                     }
